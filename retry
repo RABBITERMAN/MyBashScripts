@@ -1,0 +1,127 @@
+#!/usr/bin/bash
+clear
+VERBOSE=0
+NUM=5
+INTERVAL=10
+whileNumEXEc=1
+SUCCESS=1
+function help {
+#	echo "This is Help"
+	cat <<EOF
+Usage : $0 [OPTIONS] COMMAND
+Available option:
+  -h: Show this help content
+  -v: Verbose mode
+  -n: Number of retrys (Defult:5)
+  -i: Interval seconds (Default:10)
+Examples:
+	 $0 -v
+EOF
+}
+
+function check_number {
+	if [[ "$1" =~ ^[0-9]+$ ]]; then 
+		return 0
+	else
+		return 1
+	fi
+}
+
+
+#echo $#
+
+if [[ $# -eq 0  ]]; then
+	help
+	exit 0
+fi
+
+#echo -e Start..
+#echo process input string with while
+while [[ $# -ne 0 ]]; do
+	#echo $1
+	#shift
+#	echo -e run Number Of while $whileNumEXEc \\n \\t point of while input string is: \\n\\t\\t\\t\\t$@
+let whileNumEXEc++
+	case $1 in
+		-h)
+		   help
+		   exit 0
+		   ;;
+		-v)
+		   VERBOSE=1
+		   shift 1
+		   ;;
+		-n)
+		   check_number $2
+		   if [[ $? -ne 0 ]];then
+			echo  you most enter NUMBER
+		   	help
+			exit 1
+		   fi
+		   NUM=$2
+		   shift 2
+		   ;;
+		-i)
+		   check_number $2
+		   if [[ $? -ne 0 ]];then
+		   	echo you most enter NUMBER
+			help
+			exit 1
+		   fi
+		   INTERVAL=$2
+		   shift 2
+		   ;;
+		  *)
+		    COMMAND=$@
+		    break
+		   ;;
+	esac
+done
+
+if [[ -z $COMMAND  ]];then
+	echo no command!!!!!!!!
+	help
+	exit 0
+
+fi 
+
+: '
+echo ----------Params------------
+echo V: $VERBOSE
+echo N: $NUM
+echo I: $INTERVAL
+echo COMMAND: $COMMAND
+echo ---------starting-----------
+'
+
+#exit 0
+
+for i  in $(seq 1 $NUM);do
+if [[ $VERBOSE -eq 1 ]];then echo runing number: $i/$NUM ;fi
+#echo run
+#>>>>>>>>>>>>>
+	$($COMMAND)
+		#>>>>>>>>>>>>>>>>>>>>>
+
+	if [[ $? -eq 0 ]]; then
+		SUCCESS=0
+		break
+	else
+		if [[ $VERBOSE -eq 1 ]]; then
+		echo try $i failed,Sleeping for $INTERVAL and rety.
+		fi
+		sleep $INTERVAL
+	fi
+done
+#echo Success is : $SUCCESS
+	if [[ $SUCCESS -eq 0 ]]; then
+ 		if [[ $VERBOSE -eq 1 ]];then	
+		echo done
+		fi
+		exit 0
+	else
+		if [[ $VERBOSE -eq 1 ]];then
+		echo Fail after $NUM retry!
+		fi
+		exit 1
+	fi
